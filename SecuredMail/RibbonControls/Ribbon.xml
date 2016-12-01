@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI onLoad="Ribbon_Load" xmlns="http://schemas.microsoft.com/office/2006/01/customui" >
+  <ribbon>
+    <tabs>
+      <tab id="tabNewFeatures" label="NEW FEATURES">
+        <group id="changingGroup" label="Changing">
+          <button id="btnEratosthenes" label="Eratosthenes" getImage="GetImage" onAction="OnActionCallback" 
+                  getEnabled="GetEnabled"  tag="eratosthenes" />
+          <button id="btnSetSubject" label="Set Mail Subject And Body" onAction="OnActionCallback"
+                  getEnabled="GetEnabled" tag="setsubject" />
+          <separator id="mniMailItemMenuSeparator" />
+          <button id="btnClearBody" label="Clear Mail Body" onAction="OnActionCallback" tag="clearbody" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
