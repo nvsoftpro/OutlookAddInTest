@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -50,16 +51,22 @@ namespace SecuredMail.RibbonControls
             DialogResult result = dialogWindow.ShowDialog();
             if (result == DialogResult.OK)
             {
+                IProgress<int> progress = new Progress<int>(ProgressUpdate);
                 int maxNumber = 100;
                 Int32.TryParse(dialogWindow.MaxNumber, out maxNumber);
                 using (var mail = new OutlookMailItem(mailItem))
                 {
-                    await mail.ChangeEmailBodyWithEratosthenesSieveNumbers(maxNumber);
+                    await mail.ChangeEmailBodyWithEratosthenesSieveNumbers(maxNumber, progress);
                 }
             }
             dialogWindow.Dispose();
 
             return true;
+        }
+
+        private void ProgressUpdate(int value)
+        {
+            Debug.WriteLine(value);
         }
     }
 }

@@ -77,7 +77,7 @@ namespace SecuredMail
         /// It should be more then 3
         /// </param>
         /// <returns></returns>
-        public async Task<bool> ChangeEmailBodyWithEratosthenesSieveNumbers(int maxNumber)
+        public async Task<bool> ChangeEmailBodyWithEratosthenesSieveNumbers(int maxNumber, IProgress<int> progress )
         {
             if (maxNumber < 3)
             {
@@ -92,14 +92,15 @@ namespace SecuredMail
             }
 
             logger.Message($"START COUNTING:", DateTime.Now);
-
-            Barrier barrier = new Barrier(primes.ToList().Count());
+            int primesAll = primes.Count();
+            Barrier barrier = new Barrier(primesAll);
             foreach (var prime in primes)
             {
                 var temp = prime; //avoid closure effect
                 var task = Task.Run(() =>
                 {
                     ChangeEmailBody(temp);
+                  
                     barrier.SignalAndWait();
                 });
                 try
@@ -114,7 +115,11 @@ namespace SecuredMail
                 }
 
                 await Task.Delay(1000); // a slow pace and display numbers
+
+                progress?.Report(prime);
             }
+
+            progress?.Report(maxNumber);
 
             logger.Message($"END COUNTING:", DateTime.Now);
 
