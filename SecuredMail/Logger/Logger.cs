@@ -19,9 +19,18 @@ namespace SecuredMail.Logger
         private static async void Log(string message, object[] args, string logFile)
         {
             FileUtils.CreateDirectoryIfNotExists(currentDirectory);
-            StreamWriter writer = FileUtils.GetOrCreateFile(logFile);
-            await writer.WriteLineAsync($"{DateTime.Now.ToString("s")}\t\t{message}{string.Join(",", args)}");
-            writer.Close();
+            using (StreamWriter writer = FileUtils.GetOrCreateFile(logFile))
+            {
+                if (writer == StreamWriter.Null)
+                {
+                    return;
+                }
+
+                using (TextWriter textWriter = TextWriter.Synchronized(writer))
+                {
+                    await textWriter.WriteLineAsync($"{DateTime.Now.ToString("s")}\t\t{message}{string.Join(",", args)}");
+                }
+            }
         }
     }
 }
