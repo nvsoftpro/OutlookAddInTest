@@ -38,14 +38,13 @@ namespace SecuredMail
 
             List<string> content = await GetWindowContentAsync();
 
-            var taskFactory = new TaskFactory(TaskCreationOptions.LongRunning, TaskContinuationOptions.AttachedToParent);
             List<Task> tasks = new List<Task>();
             ChangeEmailBody($"START:{DateTime.Now}");
             logger.Message($"START:{DateTime.Now}");
             foreach (var controlData in content)
             {
                 var temp = controlData; //avoid closure variable effect
-                Task task = taskFactory.StartNew(() => { ChangeEmailBody(temp); });
+                Task task = Task.Run(() => { ChangeEmailBody(temp); });
                 tasks.Add(task);
                 try
                 {
@@ -61,12 +60,22 @@ namespace SecuredMail
                 await Task.Delay(500);
             }
 
-            return await taskFactory.ContinueWhenAll(tasks.ToArray(), _ =>
+
+            Task t = Task.WhenAll(tasks);
+            try
             {
+                t.Wait();
                 ChangeEmailBody($"DONE:{DateTime.Now}");
                 logger.Message("DONE:", DateTime.Now);
-                return true;
-            });
+            }
+            catch { }
+
+            if (t.Status == TaskStatus.RanToCompletion)
+                logger.Message("Tasks were completed");
+            else if (t.Status == TaskStatus.Faulted)
+                logger.Message("Tasks were failed");
+
+            return true;
         }
 
         /// <summary>
