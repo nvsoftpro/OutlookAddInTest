@@ -38,6 +38,7 @@ namespace SecuredMail.RibbonControls
 
         public override async Task<bool> OnActionCallback()
         {
+            this.IsEnabled = false;
             await base.OnActionCallback();
 
             var item = this.Context as Inspector;
@@ -61,6 +62,7 @@ namespace SecuredMail.RibbonControls
             }
             dialogWindow.Dispose();
 
+            this.IsEnabled = true;
             return true;
         }
 

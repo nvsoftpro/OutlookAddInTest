@@ -29,7 +29,6 @@ namespace SecuredMail
         }
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
-            logger.Message("Shutdown");
             // Note: Outlook no longer raises this event. If you have code that 
             //    must run when Outlook shuts down, see http://go.microsoft.com/fwlink/?LinkId=506785
         }

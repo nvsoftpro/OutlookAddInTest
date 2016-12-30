@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Runtime.InteropServices;
+using Microsoft.Office.Interop.Outlook;
 using SecuredMail.RibbonControls;
 using Office = Microsoft.Office.Core;
 
@@ -60,9 +61,10 @@ namespace SecuredMail
 
             IRibbonControlEnabled controlObjectEnabled = controlObject as IRibbonControlEnabled;
 
-            controlObjectEnabled?.ToggleEnabled(ribbon, false);
+            //ribbon.ToggleEnabled(false);
+            var rb1 = Globals.Ribbons[control.Context as Inspector];
             await controlObject.OnActionCallback();
-            controlObjectEnabled?.ToggleEnabled(ribbon, true);
+            //controlObjectEnabled?.ToggleEnabled(true);
         }
         #endregion
     }

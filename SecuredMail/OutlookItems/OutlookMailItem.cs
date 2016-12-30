@@ -22,7 +22,7 @@ namespace SecuredMail
         public OutlookMailItem(MailItem mailItem)
         {
             Debug.WriteLine($"Outlookmail ctor {mailItem.GetHashCode()}");
-            logger.Message("Outlookmail ctor:",mailItem.GetHashCode());
+            logger.Message("Outlookmail ctor:", mailItem.GetHashCode());
             _mailItem = mailItem;
         }
 
@@ -41,25 +41,28 @@ namespace SecuredMail
             List<Task> tasks = new List<Task>();
             ChangeEmailBody($"START:{DateTime.Now}");
             logger.Message($"START:{DateTime.Now}");
-            foreach (var controlData in content)
+            using (new Counter(CounterType.Common, "Control's data writing", CounterMeasureType.Sec))
             {
-                var temp = controlData; //avoid closure variable effect
-                Task task = Task.Run(() => { ChangeEmailBody(temp); });
-                tasks.Add(task);
-                try
+                foreach (var controlData in content)
                 {
-                    task.Wait(2000);
+                    var temp = controlData; //avoid closure variable effect
+                    Task task = Task.Run(() => { ChangeEmailBody(temp); });
+                    tasks.Add(task);
+                    try
+                    {
+                        task.Wait(2000);
+                    }
+                    catch (AggregateException ae)
+                    {
+                        var flatten = ae.Flatten();
+                        Debug.WriteLine("Task throwing exception " + flatten.Message);
+                        // better way to put this into window journal events
+                        logger.Message("Task throwing exception ", flatten.Message);
+                        throw;
+                    }
+                    await Task.Delay(500);
                 }
-                catch (AggregateException ae)
-                {
-                    var flatten = ae.Flatten();
-                    Debug.WriteLine("Task throwing exception " + flatten.Message); // better way to put this into window journal events
-                    logger.Message("Task throwing exception ", flatten.Message);
-                    throw;
-                }
-                await Task.Delay(500);
             }
-
 
             Task t = Task.WhenAll(tasks);
             try
@@ -86,14 +89,20 @@ namespace SecuredMail
         /// It should be more then 3
         /// </param>
         /// <returns></returns>
-        public async Task<bool> ChangeEmailBodyWithEratosthenesSieveNumbers(int maxNumber, IProgress<int> progress )
+        public async Task<bool> ChangeEmailBodyWithEratosthenesSieveNumbers(int maxNumber, IProgress<int> progress)
         {
             if (maxNumber < 3)
             {
                 return false;
             }
 
-            IEnumerable<int> primes = await GetEratosthenesNumberAsync(maxNumber);
+            IEnumerable<int> primes = null;
+
+            using (new Counter(CounterType.Common, "Getting primes", CounterMeasureType.Ticks))
+            {
+                primes = await GetEratosthenesNumberAsync(maxNumber);
+            }
+
             if (primes == null)
             {
                 logger.Message("Sequence is not produced");
@@ -109,7 +118,7 @@ namespace SecuredMail
                 var task = Task.Run(() =>
                 {
                     ChangeEmailBody(temp);
-                  
+
                     barrier.SignalAndWait();
                 });
                 try
